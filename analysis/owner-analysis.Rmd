@@ -19,12 +19,74 @@ library(tidyr)
 ```
 
 # Import Data
-```{r}
+```{r import data}
 lobster_abundance <- read_csv("../data/Lobster_Abundance_All_Years_20220829.csv")
 ```
 ## Fix missing values
-```{r}
+```{r fix missing values}
 lobster_abundance <- lobster_abundance %>% 
     mutate(SIZE_MM = na_if(SIZE_MM, -99999))
+```
+
+## Exercise: Data Visualization
+
+### Histograms by Site
+```{r histogram}
+p_carapace_len <- ggplot(lobster_abundance,
+                         aes(x = SIZE_MM)) +
+  geom_histogram() +
+  theme_bw() +
+  labs(x = "Size (mm)",
+       y = "Abundance",
+       title = "Lobster Abundance Histogram")
+
+p_carapace_len +
+  facet_wrap(~SITE)
+```
+
+### Total Lobsters by Year
+```{r total by year}
+lobster_abundance %>%
+  group_by(SITE,YEAR) %>% 
+  summarize(Total = sum(COUNT)) %>% 
+  ggplot(aes(x = YEAR,
+             y = Total,
+             color = SITE)) +
+  geom_line() +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Year",
+       y = "Total Lobsters",
+       color = "Site",
+       title = "Lobster Abundance by Year and Site")
+
+```
+
+### Compare Large and Small Salmon
+```{r large vs small}
+lobster_size_lrg <- lobster_abundance %>% 
+  filter(YEAR %in% c(2019, 2020, 2021)) %>% 
+  mutate(SIZE_BIN = if_else(SIZE_MM >= 70, "large","small"))
+
+lobster_size_lrg %>% 
+  group_by(SITE, SIZE_BIN) %>% 
+  summarize(TOTAL = sum(COUNT)) %>% 
+  drop_na() %>% 
+  ggplot(aes(x = SITE,
+             y = TOTAL,
+             fill = SIZE_BIN)) +
+  geom_col(position = "dodge") +
+  theme_bw() +
+  labs(x = "Site Name",
+       y = "Total Lobsters",
+       fill = "Size Class",
+       title = "Abundance of Lobsters by Size Class")
+
+ggsave(filename = "../figs/plot_abundance_large_vs_small.png",
+       plot = last_plot(),
+       width = 6,
+       height = 4,
+       dpi = 300)
+
 ```
 

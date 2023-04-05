@@ -30,3 +30,86 @@ lobster_traps <- read_csv("../data/Lobster_Trap_Counts_All_Years_20210519.csv")
 
 ```
 
+## Remove NAs
+
+```{r remove nas}
+
+lobster_traps <- lobster_traps %>% 
+    mutate(TRAPS = na_if(TRAPS, -99999))
+
+```
+
+
+## Exercise: Data Visualization
+
+Make histograms
+```{r data vis}
+
+ggplot(data = lobster_traps, aes(x = TRAPS)) +
+    geom_histogram() +
+    facet_wrap( ~ YEAR)
+
+```
+
+Create dataset subset
+```{r data subset}
+
+lobster_traps_summarize <- lobster_traps %>% 
+  group_by(SITE, YEAR) %>% 
+  summarize(TOTAL_TRAPS = sum(TRAPS, na.rm = TRUE))
+
+```
+
+Create line and point plots
+
+```{r line and point plot}
+
+# line plot
+ggplot(data = lobsters_traps_summarize, aes(x = YEAR, y = TOTAL_TRAPS)) +
+    geom_line(aes(color = SITE))
+
+# line and point plot
+ggplot(data = lobsters_traps_summarize, aes(x = YEAR, y = TOTAL_TRAPS)) +
+    geom_point(aes(color = SITE)) +
+    geom_line(aes(color = SITE))
+
+```
+
+Create new data subset
+
+```{r data subset}
+
+lobster_traps_fishing_pressure <- lobster_traps %>% 
+  filter(YEAR %in% c(2019,2020,2021)) %>% 
+  mutate(FISHING_PRESSURE = if_else(TRAPS >= 8, true = "high", false = "low")) %>%
+    group_by(SITE, FISHING_PRESSURE) %>%
+    summarize(COUNT = n()) %>%
+    drop_na()
+
+```
+
+Make stacked bar graph
+```{r stacked bar}
+
+# bar plot
+ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FISHING_PRESSURE)) +
+    geom_col()+
+  theme_bw()+
+  labs(x = NULL,
+       y = "Total Lobsters",
+       fill = "Fishing Pressure")+
+  theme(axis.text.x = element_text(angle = 45,
+                                     vjust = 0.5))+
+  ggtitle("Fishing Pressure on Lobsters by Site")
+
+# geom_col defaults to a stacked bar graph
+
+# dodged bar plot
+ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FISHING_PRESSURE)) +
+    geom_col(position = "dodge")
+
+# position = "dodge" makes the bars side by side
+
+```
+
+

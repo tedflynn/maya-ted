@@ -1,6 +1,6 @@
 ---
 title: "Lobster Report"
-author: "Maya Almaraz"
+author: "Maya Almaraz & Ted Flynn"
 date: "2023-04-05"
 output: html_document
 ---
@@ -9,22 +9,109 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Introduction
+This is a report about lobsters for the NCEAS coreR course.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Data used in this report was downloaded from the [Santa Barbara Coastal LTER dataset on EDI](https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-sbc.77.8).
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+This dataset contains two tables. 1) Abundance and size data collected annually by divers in late summer before the start of the fishing season at five SBC LTER long term kelp forest study sites: two within MPAs (Naples and Isla Vista) and three outside (Arroyo Quemado, Mohawk and Carpinteria). 2) Fishing pressure, as determined by counting the number of commercial trap floats. Data are collected every two to four weeks during the lobster fishing season (October to March) at nine sites along the mainland, eight of which are also SBC LTER long-term kelp forest study reefs.
 
-```{r cars}
-summary(cars)
+# Data Analysis
+```{r load libraries, echo=FALSE, warning=FALSE, message=FALSE}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
 ```
 
-## Including Plots
+## Read in data
 
-You can also embed plots, for example:
+```{r read data, warning=FALSE, message=FALSE}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+lobster_traps <- read_csv("data/Lobster_Trap_Counts_All_Years_20210519.csv")
+lobster_abundance <- read_csv("data/Lobster_Abundance_All_Years_20220829.csv")
+
+# .. moved you one up out of the file path
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Remove NAs
+
+```{r remove nas, warning=FALSE, message=FALSE}
+
+lobster_traps <- lobster_traps %>% 
+    mutate(TRAPS = na_if(TRAPS, -99999))
+
+lobster_abundance <- lobster_abundance %>% 
+    mutate(SIZE_MM = na_if(SIZE_MM, -99999))
+
+```
+
+## Make histograms
+```{r histograms2, warning=FALSE, message=FALSE}
+
+ggplot(data = lobster_traps, aes(x = TRAPS)) +
+    geom_histogram() +
+    facet_wrap( ~ YEAR) +
+  theme_bw()
+
+p_carapace_len <- ggplot(lobster_abundance,
+                         aes(x = SIZE_MM)) +
+  geom_histogram() +
+  theme_bw() +
+  labs(x = "Size (mm)",
+       y = "Abundance",
+       title = "Lobster Abundance Histogram")
+
+p_carapace_len +
+  facet_wrap(~SITE)
+
+```
+
+# Results
+
+## Compare Large and Small Lobsters
+```{r large vs small, warning=FALSE, message=FALSE, fig.alt = "A stacked bar plot showing the abundance of lobsters by size class in samples from the Santa Barbara Coastal Long Term Ecological Research network site."}
+lobster_size_lrg <- lobster_abundance %>% 
+  filter(YEAR %in% c(2019, 2020, 2021)) %>% 
+  mutate(SIZE_BIN = if_else(SIZE_MM >= 70, "large","small"))
+
+lobster_size_lrg %>% 
+  group_by(SITE, SIZE_BIN) %>% 
+  summarize(TOTAL = sum(COUNT)) %>% 
+  drop_na() %>% 
+  ggplot(aes(x = SITE,
+             y = TOTAL,
+             fill = SIZE_BIN)) +
+  geom_col(position = "stack") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45,
+                                   vjust = 0.5)) +
+  labs(x = NULL,
+       y = "Total Lobsters",
+       fill = "Size Class",
+       title = "Abundance of Lobsters by Size Class")
+
+```
+
+## Compare Fishing Pressure by Site
+```{r fishing pressure, warning=FALSE, message=FALSE, fig.alt="Lobter counts, stacked bar graph of high and low pressure by site from the Santa Barbara Long Term Ecological Research site"}
+
+lobster_traps_fishing_pressure <- lobster_traps %>% 
+  filter(YEAR %in% c(2019,2020,2021)) %>% 
+  mutate(FISHING_PRESSURE = if_else(TRAPS >= 8, true = "high", false = "low")) %>%
+    group_by(SITE, FISHING_PRESSURE) %>%
+    summarize(COUNT = n()) %>%
+    drop_na()
+
+ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FISHING_PRESSURE)) +
+    geom_col()+
+  theme_bw()+
+  labs(x = NULL,
+       y = "Total Lobsters",
+       fill = "Fishing Pressure")+
+  theme(axis.text.x = element_text(angle = 45,
+                                     vjust = 0.5))+
+  ggtitle("Fishing Pressure on Lobsters by Site")
+
+```

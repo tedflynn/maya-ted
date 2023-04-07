@@ -118,11 +118,11 @@ ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FI
 
 ```{r new graph}
 
-ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FISHING_PRESSURE)) +
+ggplot(data = lobster_traps_fishing_pressure, aes(x = COUNT, y = SITE, fill = FISHING_PRESSURE)) +
     geom_col()+
   theme_bw()+
-  labs(x = NULL,
-       y = "Total Lobsters",
+  labs(x = "Total Lobsters",
+       y = NULL,
        fill = "Fishing Pressure")+
   theme(axis.text.x = element_text(angle = 45,
                                      vjust = 0.5))+

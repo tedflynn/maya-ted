@@ -92,15 +92,18 @@ Make stacked bar graph
 ```{r stacked bar}
 
 # bar plot
-ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FISHING_PRESSURE)) +
-    geom_col()+
+ggplot(data = lobster_traps_fishing_pressure, 
+       aes(x = SITE, 
+           y = COUNT, 
+           fill = FISHING_PRESSURE)) +
+  geom_col()+
   theme_bw()+
   labs(x = NULL,
        y = "Total Lobsters",
-       fill = "Fishing Pressure")+
+       fill = "Fishing Pressure",
+       title = "Fishing Pressure on Lobsters by Site")+
   theme(axis.text.x = element_text(angle = 45,
-                                     vjust = 0.5))+
-  ggtitle("Fishing Pressure on Lobsters by Site")
+                                   vjust = 0.5))
 
 # geom_col defaults to a stacked bar graph
 
@@ -109,6 +112,13 @@ ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FI
     geom_col(position = "dodge")
 
 # position = "dodge" makes the bars side by side
+
+```
+Save 
+
+```{r save fig}
+
+ggsave("../figs/fishing pressure.png", width = 12, height = 8, units = "in")
 
 ```
 

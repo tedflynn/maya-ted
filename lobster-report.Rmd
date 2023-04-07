@@ -115,3 +115,20 @@ ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FI
   ggtitle("Fishing Pressure on Lobsters by Site")
 
 ```
+
+```{r new graph}
+
+ggplot(data = lobster_traps_fishing_pressure, aes(x = SITE, y = COUNT, fill = FISHING_PRESSURE)) +
+    geom_col()+
+  theme_bw()+
+  labs(x = NULL,
+       y = "Total Lobsters",
+       fill = "Fishing Pressure")+
+  theme(axis.text.x = element_text(angle = 45,
+                                     vjust = 0.5))+
+  ggtitle("Fishing Pressure on Lobsters by Site")
+```
+```{r}
+
+```
+
